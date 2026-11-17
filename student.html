@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My passes{% endblock %}
+{% block body %}
+<div class="card">
+  <h3>Profile</h3>
+  <p>{{ user.name }}<br>{{ user.reg }} · {{ user.dept }}</p>
+  <p class="note">Mentor: {{ mentor.name if mentor else '-' }} · HOD: {{ hod.name if hod else '-' }}</p>
+</div>
+
+<div class="card">
+  <h3>Apply for a gate pass</h3>
+  <p class="note">Passes run between {{ cfg.EARLIEST_LEAVE }} and {{ cfg.LATEST_RETURN }}, up to {{ cfg.MAX_HOURS }} hours, {{ cfg.MAX_PASSES_PER_DAY }} per day.</p>
+  <form method="post" action="{{ url_for('apply') }}">
+    {{ csrf() }}
+    <div class="grid">
+      <div><label for="date">Date</label><input id="date" name="date" type="date" value="{{ today }}" min="{{ today }}" required></div>
+      <div><label for="leave_time">Leaving time</label><input id="leave_time" name="leave_time" type="time" min="{{ cfg.EARLIEST_LEAVE }}" max="{{ cfg.LATEST_RETURN }}" required></div>
+      <div><label for="return_time">Expected return</label><input id="return_time" name="return_time" type="time" min="{{ cfg.EARLIEST_LEAVE }}" max="{{ cfg.LATEST_RETURN }}" required></div>
+      <div><label for="destination">Destination</label><input id="destination" name="destination" maxlength="80" required></div>
+    </div>
+    <label for="reason">Reason</label>
+    <textarea id="reason" name="reason" rows="2" minlength="5" maxlength="200" required></textarea>
+    <p><button class="btn">Submit request</button></p>
+  </form>
+</div>
+
+<div class="card">
+  <h3>My requests</h3>
+  <div class="sc"><table>
+    <tr><th>ID</th><th>Date</th><th>Time</th><th>Destination</th><th>Status</th><th>Remarks</th><th>Pass</th></tr>
+    {% for p in passes %}
+    <tr>
+      <td>{{ pass_id(p) }}</td><td>{{ p.date }}</td><td>{{ p.leave_time }}–{{ p.return_time }}</td><td>{{ p.destination }}</td>
+      <td><span class="bd {{ badge(overall(p)) }}">{{ overall(p) }}</span>
+        {% if p.actual_return %}<br><small>Returned {{ p.actual_return }} ({{ 'late' if p.late else 'on time' }})</small>{% endif %}</td>
+      <td><small>{% if p.mentor_remark %}Mentor: {{ p.mentor_remark }}<br>{% endif %}{% if p.hod_remark %}HOD: {{ p.hod_remark }}{% endif %}</small></td>
+      <td>{% if overall(p) == 'Approved' %}<a href="{{ url_for('view_pass', pid=p.id) }}">View pass</a>{% else %}-{% endif %}</td>
+    </tr>
+    {% else %}<tr><td colspan="7">No requests yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

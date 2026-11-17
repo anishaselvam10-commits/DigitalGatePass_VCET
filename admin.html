@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block body %}
+<div class="grid" style="margin-bottom:16px">
+  <div class="card stat"><b>{{ stats.students }}</b><span class="note">Students</span></div>
+  <div class="card stat"><b>{{ stats.total }}</b><span class="note">All requests</span></div>
+  <div class="card stat"><b>{{ stats.approved }}</b><span class="note">Approved</span></div>
+  <div class="card stat"><b>{{ stats.pending }}</b><span class="note">Pending</span></div>
+  <div class="card stat"><b>{{ stats.rejected }}</b><span class="note">Rejected</span></div>
+</div>
+
+<div class="two">
+  <div class="card">
+    <h3>Late returns by department</h3>
+    <div class="sc"><table>
+      <tr><th>Department</th><th>Returns</th><th>Late</th></tr>
+      {% for r in by_dept %}<tr><td>{{ r.dept or '-' }}</td><td>{{ r.total }}</td><td>{{ r.late }}</td></tr>
+      {% else %}<tr><td colspan="3">No completed passes yet.</td></tr>{% endfor %}
+    </table></div>
+    <h3 style="margin-top:14px">Students with most late returns</h3>
+    <div class="sc"><table>
+      <tr><th>Student</th><th>Dept</th><th>Late / returns</th></tr>
+      {% for r in top_late %}<tr><td>{{ r.name }} ({{ r.reg }})</td><td>{{ r.dept }}</td><td>{{ r.late }} / {{ r.total }}</td></tr>
+      {% else %}<tr><td colspan="3">None.</td></tr>{% endfor %}
+    </table></div>
+    <p><a class="btn s sm" href="{{ url_for('admin_export') }}">Download all passes (CSV)</a></p>
+  </div>
+
+  <div class="card">
+    <h3>Machine learning models</h3>
+    {% if info %}
+    <table>
+      <tr><td>Last trained</td><td>{{ info.trained_at }}</td></tr>
+      <tr><td>Synthetic rows</td><td>{{ info.synthetic_rows }}</td></tr>
+      <tr><td>Real rows from this college</td><td>{{ info.real_rows }}</td></tr>
+      <tr><td>Hold-out accuracy / AUC</td><td>{{ info.holdout_accuracy }} / {{ info.holdout_auc }}</td></tr>
+      <tr><td>Late-return rate in data</td><td>{{ info.late_rate }}</td></tr>
+    </table>
+    {% else %}<p>Not trained yet.</p>{% endif %}
+    <p class="note">Until this college has enough real history, the models learn mostly from synthetic data, so treat the scores as a hint only. Retrain after a few weeks of real use.</p>
+    <form method="post" action="{{ url_for('admin_retrain') }}">{{ csrf() }}<button class="btn">Retrain with real data</button></form>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Add a user</h3>
+  <form method="post" action="{{ url_for('admin_add') }}">
+    {{ csrf() }}
+    <div class="grid">
+      <div><label for="a_role">Role</label>
+        <select id="a_role" name="role" onchange="document.getElementById('stu').hidden = this.value !== 'student'">
+          <option value="student">Student</option><option value="mentor">Mentor</option>
+          <option value="hod">HOD</option><option value="gate">Gate guard</option></select></div>
+      <div><label for="a_name">Full name</label><input id="a_name" name="name" required></div>
+      <div><label for="a_reg">Register no. / Staff ID</label><input id="a_reg" name="reg" required></div>
+      <div><label for="a_dept">Department</label>
+        <select id="a_dept" name="dept"><option value="">None</option>{% for d in cfg.DEPARTMENTS %}<option>{{ d }}</option>{% endfor %}</select></div>
+      <div><label for="a_dob">Date of birth</label><input id="a_dob" name="dob" type="date" required></div>
+      <div><label for="a_phone">Phone (10 digits)</label><input id="a_phone" name="phone" maxlength="10"></div>
+    </div>
+    <div id="stu" class="grid">
+      <div><label for="a_mentor">Mentor (students)</label>
+        <select id="a_mentor" name="mentor_id"><option value="">Choose</option>{% for m in mentors %}<option value="{{ m.id }}">{{ m.name }} ({{ m.dept }})</option>{% endfor %}</select></div>
+      <div><label for="a_hod">HOD (students)</label>
+        <select id="a_hod" name="hod_id"><option value="">Choose</option>{% for h in hods %}<option value="{{ h.id }}">{{ h.name }} ({{ h.dept }})</option>{% endfor %}</select></div>
+    </div>
+    <p><button class="btn">Add user</button></p>
+  </form>
+</div>
+
+<div class="card">
+  <h3>Users</h3>
+  <p class="row note">Show:
+    <a href="{{ url_for('admin') }}">all</a>
+    {% for r in ['student','mentor','hod','gate','admin'] %}<a href="{{ url_for('admin', role=r) }}">{{ r }}</a>{% endfor %}
+  </p>
+  <div class="sc"><table>
+    <tr><th>Role</th><th>Reg / ID</th><th>Name</th><th>Dept</th><th>Active</th><th></th></tr>
+    {% for u in users %}
+    <tr><td>{{ u.role }}</td><td>{{ u.reg }}</td><td>{{ u.name }}</td><td>{{ u.dept or '-' }}</td>
+      <td><span class="bd {{ 'ok' if u.active else 'er' }}">{{ 'Yes' if u.active else 'No' }}</span></td>
+      <td><a href="{{ url_for('admin_user', uid=u.id) }}">Edit</a></td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

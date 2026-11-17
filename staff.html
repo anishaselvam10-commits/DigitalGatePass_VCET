@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ role|upper }} dashboard{% endblock %}
+{% block body %}
+<div class="card">
+  <h3>{{ 'Mentor' if role == 'mentor' else 'HOD' }} dashboard</h3>
+  <p class="note">The risk and anomaly columns come from machine learning models and are advice only. "Unusual" is not proof of misconduct. You make the decision.</p>
+  <p><b>{{ pending|length }}</b> request{{ '' if pending|length == 1 else 's' }} waiting for your decision.</p>
+  <div class="sc"><table>
+    <tr><th>ID</th><th>Student</th><th>Request</th><th>ML risk</th><th>Anomaly</th><th>Mentor</th><th>HOD</th><th>Action</th></tr>
+    {% for p in rows %}
+    {% set mine = (p.mentor_status if role == 'mentor' else p.hod_status) == 'Pending' %}
+    {% set h = hist.get(p.student_id) %}
+    <tr>
+      <td>{{ pass_id(p) }}</td>
+      <td>{{ p.sname }}<br><small>{{ p.sreg }} · {{ p.sdept }}</small><br>
+        <small>{% if h %}{{ h.done }} past return{{ '' if h.done == 1 else 's' }}, {{ h.lates }} late{% else %}No past returns{% endif %}</small></td>
+      <td>{{ p.date }} {{ p.leave_time }}–{{ p.return_time }}<br><b>To:</b> {{ p.destination }}<br><b>Reason:</b> {{ p.reason }}</td>
+      <td>{% if p.risk %}<span class="bd {{ badge(p.risk) }}">{{ p.risk }}</span>{% if p.risk_prob is not none %}<br><small>{{ (p.risk_prob * 100)|round|int }}% chance of late return</small>{% endif %}{% endif %}</td>
+      <td>{% if p.anomaly %}<span class="bd {{ badge(p.anomaly) }}">{{ p.anomaly }}</span>{% endif %}</td>
+      <td><span class="bd {{ badge(p.mentor_status) }}">{{ p.mentor_status }}</span><br><small>{{ p.mentor_remark }}</small></td>
+      <td><span class="bd {{ badge('Not required' if p.hod_status == 'NA' else p.hod_status) }}">{{ 'Not required' if p.hod_status == 'NA' else p.hod_status }}</span><br><small>{{ p.hod_remark }}</small></td>
+      <td>
+        {% if mine %}
+        <form method="post" action="{{ url_for('decide', pid=p.id) }}">
+          {{ csrf() }}
+          <input class="remark" name="remark" maxlength="200" placeholder="Remark (optional)" aria-label="Remark">
+          <button class="btn g sm" name="action" value="Approved">Approve</button>
+          <button class="btn r sm" name="action" value="Rejected">Reject</button>
+        </form>
+        {% else %}Done{% endif %}
+      </td>
+    </tr>
+    {% else %}<tr><td colspan="8">No requests yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

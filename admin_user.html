@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ u.reg }}{% endblock %}
+{% block body %}
+<div class="card narrow">
+  <h2>Edit {{ u.reg }} <small class="note">({{ u.role }})</small></h2>
+  <form method="post" action="{{ url_for('admin_user', uid=u.id) }}">
+    {{ csrf() }}
+    <label for="name">Full name</label><input id="name" name="name" value="{{ u.name }}" required>
+    <label for="dept">Department</label>
+    <select id="dept" name="dept"><option value="">None</option>
+      {% for d in cfg.DEPARTMENTS %}<option {{ 'selected' if u.dept == d }}>{{ d }}</option>{% endfor %}</select>
+    <label for="dob">Date of birth (used to log in)</label><input id="dob" name="dob" type="date" value="{{ u.dob }}" required>
+    <label for="phone">Phone</label><input id="phone" name="phone" maxlength="10" value="{{ u.phone or '' }}">
+    {% if u.role == 'student' %}
+    <label for="mentor_id">Mentor</label>
+    <select id="mentor_id" name="mentor_id">{% for m in mentors %}<option value="{{ m.id }}" {{ 'selected' if u.mentor_id == m.id }}>{{ m.name }} ({{ m.dept }})</option>{% endfor %}</select>
+    <label for="hod_id">HOD</label>
+    <select id="hod_id" name="hod_id">{% for h in hods %}<option value="{{ h.id }}" {{ 'selected' if u.hod_id == h.id }}>{{ h.name }} ({{ h.dept }})</option>{% endfor %}</select>
+    {% endif %}
+    <label><input type="checkbox" name="active" value="1" style="width:auto" {{ 'checked' if u.active }}> Account active</label>
+    <p><button class="btn">Save</button> <a href="{{ url_for('admin') }}">Cancel</a></p>
+  </form>
+</div>
+{% endblock %}

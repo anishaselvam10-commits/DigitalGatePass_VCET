@@ -1,0 +1,43 @@
+
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block body %}
+<div class="card narrow">
+  <h2>Velalar College of Engineering and Technology</h2>
+  <p class="note">Gate Pass Portal – Students and Staff</p>
+
+  <div style="display:flex; gap:8px; margin:18px 0; flex-wrap:wrap;">
+    <a class="btn" href="#login-form">Login</a>
+
+    {% if cfg.SELF_SIGNUP_STUDENTS %}
+    <a class="btn" href="{{ url_for('signup') }}">Sign up</a>
+    {% endif %}
+
+    <a class="btn" href="{{ url_for('login', next=url_for('gate')) }}">Gate</a>
+  </div>
+
+  <p class="note">
+    Students and staff can log in using their Register Number / Staff ID and Date of Birth.
+    Gate staff should use their Gate Staff ID.
+  </p>
+
+  <form id="login-form" method="post" action="{{ url_for('login') }}">
+    {{ csrf() }}
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+
+    <label for="reg">Register number / Staff ID</label>
+    <input id="reg" name="reg" required autocomplete="username" autofocus>
+
+    <label for="dob">Date of birth</label>
+    <input id="dob" name="dob" type="date" required autocomplete="bday">
+
+    <p><button class="btn">Login</button></p>
+  </form>
+
+  <p class="note">
+    New student? Create an account using the Sign up button.
+    Staff accounts are created by the administrator.
+  </p>
+</div>
+{% endblock %}

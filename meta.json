@@ -1,0 +1,8 @@
+{
+  "trained_at": "2026-11-13 21:08",
+  "synthetic_rows": 4648,
+  "real_rows": 0,
+  "holdout_accuracy": 0.714,
+  "holdout_auc": 0.645,
+  "late_rate": 0.302
+}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ pass_id(p) }}{% endblock %}
+{% block body %}
+<div class="pass">
+  <h2>{{ college }}</h2>
+  <p class="sub">{{ place }} · Official Student Gate Pass</p>
+  <div class="tag">GATE PASS</div>
+  <table>
+    {% for label, value in [
+      ('Gate Pass ID', pass_id(p)), ('Student', s.name), ('Register No.', s.reg), ('Department', s.dept or '-'),
+      ('Date', p.date), ('Leaving', p.leave_time), ('Expected return', p.return_time),
+      ('Destination', p.destination), ('Reason', p.reason),
+      ('Mentor approval', '✔ ' ~ (mentor.name if mentor else 'Mentor')), ('Mentor remark', p.mentor_remark or '-'),
+      ('HOD approval', 'Not required' if p.hod_status == 'NA' else '✔ ' ~ (hod.name if hod else 'HOD')),
+      ('HOD remark', p.hod_remark or '-')] %}
+    <tr><td>{{ label }}</td><td><b>{{ value }}</b></td></tr>
+    {% endfor %}
+  </table>
+  <div class="valid">✔ APPROVED – VALID FOR ONE EXIT ON {{ p.date }}</div>
+  <div class="qr"><img src="{{ url_for('pass_qr', pid=p.id) }}" alt="QR code for {{ pass_id(p) }}"></div>
+  <p class="sub">Gate scan code: <b>{{ pass_id(p) }}-{{ code }}</b></p>
+  <div class="sig"><div>Student</div><div>Mentor</div><div>HOD</div></div>
+  <p class="sub">Show this pass to security at the gate. Not valid after the expected return time.</p>
+</div>
+{% if local %}<div class="flash error" style="max-width:480px;margin:0 auto 12px">This QR points to <b>{{ link }}</b>, which a phone cannot open. Open this site using your laptop's Wi-Fi address, or set PUBLIC_URL in config.py. See the README.</div>{% endif %}
+<div class="actions">
+  <a class="btn" href="{{ url_for('pass_pdf', pid=p.id) }}" target="_blank">Open PDF</a>
+  <button class="btn s" onclick="window.print()">Print</button>
+  <a class="btn s" href="{{ url_for('index') }}">Back</a>
+</div>
+{% endblock %}

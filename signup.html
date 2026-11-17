@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Student sign up{% endblock %}
+{% block body %}
+<div class="card narrow">
+  <h2>Student sign up</h2>
+  <form method="post" action="{{ url_for('signup') }}">
+    {{ csrf() }}
+    <label for="name">Full name</label>
+    <input id="name" name="name" required maxlength="60" value="{{ form.get('name','') }}">
+    <label for="reg">Register number</label>
+    <input id="reg" name="reg" required maxlength="25" value="{{ form.get('reg','') }}">
+    <label for="dept">Department</label>
+    <select id="dept" name="dept" required>
+      <option value="">Choose</option>
+      {% for d in cfg.DEPARTMENTS %}<option {{ 'selected' if form.get('dept')==d }}>{{ d }}</option>{% endfor %}
+    </select>
+    <label for="dob">Date of birth</label>
+    <input id="dob" name="dob" type="date" required value="{{ form.get('dob','') }}">
+    <label for="phone">Phone number</label>
+    <input id="phone" name="phone" required inputmode="numeric" maxlength="10" pattern="\d{10}" value="{{ form.get('phone','') }}">
+    <label for="mentor_id">Your mentor</label>
+    <select id="mentor_id" name="mentor_id" required>
+      <option value="">Choose</option>
+      {% for m in mentors %}<option value="{{ m.id }}" {{ 'selected' if form.get('mentor_id')|string==m.id|string }}>{{ m.name }} ({{ m.dept }})</option>{% endfor %}
+    </select>
+    <label for="hod_id">Your HOD</label>
+    <select id="hod_id" name="hod_id" required>
+      <option value="">Choose</option>
+      {% for h in hods %}<option value="{{ h.id }}" {{ 'selected' if form.get('hod_id')|string==h.id|string }}>{{ h.name }} ({{ h.dept }})</option>{% endfor %}
+    </select>
+    {% if not mentors or not hods %}<p class="note">No mentor or HOD accounts exist yet. Ask the administrator to add them first.</p>{% endif %}
+    <p><button class="btn">Create account</button> <a href="{{ url_for('login') }}">Back to login</a></p>
+  </form>
+</div>
+{% endblock %}
